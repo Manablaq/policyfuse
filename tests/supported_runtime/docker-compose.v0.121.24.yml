@@ -1,0 +1,156 @@
+services:
+  postgres:
+    platform: linux/arm64
+    image: postgres@sha256:3c5c8892d184f738f4fe282d14ddaa613a38f00f4189d2d94725ebe6f2909ddb
+    environment:
+      POSTGRES_DB: genlayer_state
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres -d genlayer_state
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    platform: linux/arm64
+    image: redis@sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  webdriver:
+    platform: linux/arm64
+    image: yeagerai/genlayer-genvm-webdriver@sha256:57ad706cdf79c18070cdcbf5838c29fa83f85d487294ab659579616d33f0ee23
+    environment:
+      PORT: "5001"
+    shm_size: "2gb"
+    restart: unless-stopped
+
+  database-migration:
+    platform: linux/arm64
+    image: yeagerai/simulator-database-migration@sha256:e6fb4d7cfff92150a7e02bbf63f5cda2bc5a36f4294d730420662c796b1f6949
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DBUSER: postgres
+      DBPASSWORD: postgres
+      DBHOST: postgres
+      DBPORT: "5432"
+      DBNAME: genlayer_state
+    restart: "no"
+
+  jsonrpc:
+    platform: linux/arm64
+    image: yeagerai/simulator-jsonrpc@sha256:a8019b1ec9b6273677a85478d74b5e70f2de96b6af0526d71da98a3926d14273
+    depends_on:
+      database-migration:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      webdriver:
+        condition: service_healthy
+    environment:
+      DATABASE_MAX_OVERFLOW: "10"
+      DATABASE_POOL_SIZE: "20"
+      DBUSER: postgres
+      DBPASSWORD: postgres
+      DBHOST: postgres
+      DBPORT: "5432"
+      DBNAME: genlayer_state
+      DEFAULT_CONSENSUS_MAX_ROTATIONS: "3"
+      DEFAULT_NUM_INITIAL_VALIDATORS: "5"
+      GENLAYER_CHAIN_ID: "61999"
+      GENVMROOT: /genvm
+      HARDHAT_URL: http://hardhat
+      HARDHAT_PORT: "8545"
+      JSONRPC_SERVER_URL: http://jsonrpc:4000
+      LOG_LEVEL: info
+      PYTHONUNBUFFERED: "1"
+      RATE_LIMIT_ENABLED: "false"
+      REDIS_URL: redis://redis:6379/0
+      RPCPORT: "4000"
+      VALIDATORS_CONFIG_JSON: "[]"
+      VITE_FINALITY_WINDOW: "1"
+      VITE_FINALITY_WINDOW_APPEAL_FAILED_REDUCTION: "0.2"
+      VITE_MAX_ROTATIONS: "3"
+      WEB_CONCURRENCY: "1"
+      WEBDRIVERHOST: webdriver
+      WEBDRIVERPORT: "5001"
+    ports:
+      - "${POLICYFUSE_SUPPORTED_RUNTIME_RPC_PORT:-4200}:4000"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:4000/health
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 5m
+    restart: unless-stopped
+
+  consensus-worker:
+    platform: linux/arm64
+    image: yeagerai/simulator-consensus-worker@sha256:c4cacac3d0853249a62e2c067dfc9a973f1476f3f3c8b5c31225b4ea5d90b209
+    depends_on:
+      database-migration:
+        condition: service_completed_successfully
+      jsonrpc:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      webdriver:
+        condition: service_healthy
+    environment:
+      CONSENSUS_VALIDATOR_MAX_CONCURRENT: "5"
+      DBUSER: postgres
+      DBPASSWORD: postgres
+      DBHOST: postgres
+      DBPORT: "5432"
+      DBNAME: genlayer_state
+      DEFAULT_CONSENSUS_MAX_ROTATIONS: "3"
+      DEFAULT_NUM_INITIAL_VALIDATORS: "5"
+      GENLAYER_CHAIN_ID: "61999"
+      GENVMROOT: /genvm
+      HARDHAT_URL: http://hardhat
+      HARDHAT_PORT: "8545"
+      JSONRPC_SERVER_URL: http://jsonrpc:4000
+      LOG_LEVEL: info
+      MAX_PARALLEL_TXS_PER_WORKER: "1"
+      PYTHONUNBUFFERED: "1"
+      REDIS_URL: redis://redis:6379/0
+      TRANSACTION_TIMEOUT_MINUTES: "30"
+      VITE_FINALITY_WINDOW: "1"
+      VITE_FINALITY_WINDOW_APPEAL_FAILED_REDUCTION: "0.2"
+      VITE_MAX_ROTATIONS: "3"
+      WEBDRIVERHOST: webdriver
+      WEBDRIVERPORT: "5001"
+      WORKER_POLL_INTERVAL: "1"
+      WORKER_PORT: "4001"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:4001/health
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 4m
+    restart: unless-stopped

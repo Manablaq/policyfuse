@@ -2,7 +2,7 @@
 
 PolicyFuse is a reusable GenLayer Intelligent Contract for converting versioned natural-language mandates into exact, bounded, machine-consumable semantic authorizations.
 
-Status: v1 specification and threat model are being frozen before implementation. No deployment exists yet.
+Status: v1 Intelligent Contract implemented and release-frozen after Direct Mode and clean-start five-validator supported-runtime verification on the pinned GenLayer v0.121.24 / GenVM v0.2.16 linux/arm64 profile. No Bradbury or other live-network deployment is claimed in this release.
 
 ## v1 thesis
 
@@ -25,7 +25,7 @@ The contract is intentionally non-custodial. It does not hold funds, transfer as
 9. Deploy the exact verified source only after all earlier gates pass.
 10. Verify live-network finality and exact deployed-source identity.
 
-No GitHub repository or GenLayer deployment is created by this foundation step.
+This public repository contains the release-frozen v1 source and reproducible supported-runtime harness. Live-network deployment and live-network finality verification remain separate future release steps.
 
 ## Supported-runtime finality verification
 

@@ -17,6 +17,7 @@ PolicyFuse is deliberately non-custodial. It does not hold funds, transfer asset
 - Live verification network: **GenLayer Studio Dev**
 - Chain ID: `61997`
 - Contract: `0xF5066aE61456b1ADEC4871Da1650F64F1aE5C43F`
+- Developer Hub: https://policyfuse-docs.vercel.app
 - Published verification commit: `4e62920d5d0b7173c6c413faf95d66d99103337b`
 - Final signer nonce after the authorized live-verification sequence: `182`
 - Additional contract writes authorized by the R7-R1 packet: **0**
@@ -204,7 +205,11 @@ The full threat model is in [`docs/THREAT_MODEL_V1.md`](docs/THREAT_MODEL_V1.md)
 
 ## Documentation
 
-Start with [`docs/README.md`](docs/README.md) for the complete documentation map.
+- **Developer Hub:** https://policyfuse-docs.vercel.app
+- **Developer Hub source:** https://github.com/Manablaq/policyfuse-docs
+- **Repository documentation map:** [`docs/README.md`](docs/README.md)
+
+The Developer Hub provides the architecture walkthrough, quick-start integration flow, complete public API reference, security model, verification evidence, and reusable integration patterns while this repository remains the canonical contract, test, and evidence source.
 
 ## License
 

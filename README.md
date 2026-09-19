@@ -1,53 +1,211 @@
 # PolicyFuse
 
-PolicyFuse is a reusable GenLayer Intelligent Contract for converting versioned natural-language mandates into exact, bounded, machine-consumable semantic authorizations.
+PolicyFuse is a GenLayer Intelligent Contract for turning immutable, versioned natural-language policies into exact, machine-consumable semantic authorization decisions.
 
-Status: v1 Intelligent Contract implemented and release-frozen after Direct Mode, clean-start five-validator supported-runtime verification on the pinned GenLayer v0.121.24 / GenVM v0.2.16 linux/arm64 profile, and completed Studio Dev live-network verification. The verified live deployment is on GenLayer Studio Dev (chain ID 61997).
+It answers one consequential question:
 
-## v1 thesis
+> Given this exact policy version and this exact proposed action, is the action allowed?
 
-PolicyFuse answers one question:
+PolicyFuse is deliberately non-custodial. It does not hold funds, transfer assets, or execute downstream actions. It produces bounded authorization records that downstream applications may consume.
 
-> Given this exact proposed action and this exact immutable policy version, is the action allowed?
+## Status
 
-The contract is intentionally non-custodial. It does not hold funds, transfer assets, or execute downstream actions. It issues and verifies semantic authorization records that other applications can consume.
+**v1 is implemented, release-frozen, tested, and live-verified.**
 
-## Engineering order
+- Direct Mode regression: **36/36 tests passed**
+- Supported-runtime verification: **five validators**, actual `FINALIZED` outcomes
+- Live verification network: **GenLayer Studio Dev**
+- Chain ID: `61997`
+- Contract: `0xF5066aE61456b1ADEC4871Da1650F64F1aE5C43F`
+- Published verification commit: `4e62920d5d0b7173c6c413faf95d66d99103337b`
+- Final signer nonce after the authorized live-verification sequence: `182`
+- Additional contract writes authorized by the R7-R1 packet: **0**
 
-1. Freeze specification, threat model, consensus semantics, and state machine.
-2. Pin the current GenLayer toolchain and runtime.
-3. Implement the smallest contract that satisfies the frozen model.
-4. Lint/typecheck and source-security checks.
-5. Direct Mode deterministic and adversarial tests.
-6. Direct Mode validator agreement/disagreement tests.
-7. Supported multi-validator runtime finality tests.
-8. Reviewer-style adversarial audit.
-9. Deploy the exact verified source only after all earlier gates pass.
-10. Verify live-network finality and exact deployed-source identity.
+See [`docs/live-verification/STUDIO_DEV_FINAL.md`](docs/live-verification/STUDIO_DEV_FINAL.md) for the complete live-network record.
 
-This public repository contains the release-frozen v1 source, reproducible supported-runtime harness, and verified Studio Dev live-network evidence. Deployment and live-network finality verification are complete for the documented Studio Dev contract; see `docs/live-verification/STUDIO_DEV_FINAL.md`.
+## Why PolicyFuse
 
-## Supported-runtime finality verification
+Many applications need to evaluate a policy before allowing a consequential action. A free-form model response is not enough: the decision must be bound to the exact policy version, exact action, exact consumer, explicit validity window, and validator-agreed rule states.
 
-PolicyFuse includes a clean-start five-validator supported-runtime regression using the pinned GenLayer v0.121.24 / GenVM v0.2.16 linux/arm64 execution profile.
+PolicyFuse provides that binding.
 
-Run `./scripts/verify-supported-runtime.sh` from the repository root.
+Its v1 outcome model is:
 
-The regression requires actual FINALIZED transactions for ALLOW, DENY, and REPAIR_REQUIRED, verifies ALLOW authorization currentness, and persists each raw evaluation RPC response before decoding it.
+| Outcome | Meaning | Authorization |
+| --- | --- | --- |
+| `ALLOW` | Every consequential rule passes | Created and bound to the exact consumer/action |
+| `DENY` | At least one rule fails | None |
+| `REPAIR_REQUIRED` | No rule fails, but at least one rule is unknown | None |
 
-See `docs/SUPPORTED_RUNTIME_VERIFICATION_V1.md` for the exact runtime and evidence contract.
+This prevents uncertainty or partial evidence from silently becoming authority.
 
-<!-- POLICYFUSE_STUDIO_DEV_LIVE_VERIFICATION_V1 -->
-## Studio Dev live verification
+## Core guarantees
 
-PolicyFuse has completed its live-network verification on **GenLayer Studio Dev (chain ID 61997)** for contract `0xF5066aE61456b1ADEC4871Da1650F64F1aE5C43F`.
+PolicyFuse v1 is designed around the following invariants:
 
-The deployment and all seven authorized verification writes reached materialized finality. The three consequence paths were independently verified as:
+- **Immutable policy versions** — policy content and fingerprints do not change after creation.
+- **Exact action binding** — authorization is tied to the canonical action digest.
+- **Exact consumer binding** — an authorization cannot be replayed for a different consumer.
+- **No tolerance on consequential states** — validator agreement is over exact rule outcomes.
+- **No authorization on failure or uncertainty** — `DENY` and `REPAIR_REQUIRED` produce no authorization.
+- **Currentness is recomputed from durable state** — supersession, revocation, expiry, or intent changes invalidate stale authority.
+- **Bounded nondeterminism** — untrusted strings and collections are validated before entering validator evaluation.
+- **Non-custodial design** — the contract never holds or transfers user assets.
 
-- `ALLOW` → `R1=PASS`, with authorization current for the exact consumer/action binding at final certification time.
+## Architecture
+
+A request moves through four durable layers:
+
+1. **Policy** — an immutable versioned rule set owned by a policy owner.
+2. **Intent** — an exact proposed action, consumer, clarification context, and deadline.
+3. **Decision** — validator-agreed rule states and the resulting `ALLOW`, `DENY`, or `REPAIR_REQUIRED` outcome.
+4. **Authorization** — created only for `ALLOW`, with exact bindings and an explicit validity window.
+
+Historical records remain queryable, but historical existence never implies current authority.
+
+For the detailed model, see:
+
+- [`docs/SPEC_V1.md`](docs/SPEC_V1.md)
+- [`docs/DATA_MODEL_V1.md`](docs/DATA_MODEL_V1.md)
+- [`docs/STATE_MACHINE_V1.md`](docs/STATE_MACHINE_V1.md)
+- [`docs/CONSENSUS_V1.md`](docs/CONSENSUS_V1.md)
+
+## Public contract API
+
+### Write methods
+
+- `create_policy`
+- `supersede_policy`
+- `revoke_policy`
+- `create_intent`
+- `evaluate_intent`
+- `repair_intent`
+- `expire_intent`
+
+### Read methods
+
+- `get_policy`
+- `get_intent`
+- `get_decision`
+- `get_authorization`
+- `get_verdict`
+- `is_authorization_current`
+- `is_authorization_current_for`
+- `get_latest_policy`
+
+The exact signatures, lifecycle rules, and bounds are documented in [`docs/PUBLIC_API_V1.md`](docs/PUBLIC_API_V1.md) and [`docs/BOUNDS_AND_IDENTIFIERS_V1.md`](docs/BOUNDS_AND_IDENTIFIERS_V1.md).
+
+## Verification
+
+### Direct Mode
+
+The release-frozen Direct Mode regression lives at:
+
+```text
+tests/direct/test_policy_fuse_v1.py
+```
+
+The final reviewer-readiness run passed:
+
+```text
+36 passed
+```
+
+### Supported runtime
+
+PolicyFuse includes a clean-start five-validator Docker supported-runtime regression.
+
+Run from the repository root:
+
+```bash
+./scripts/verify-supported-runtime.sh
+```
+
+The harness requires real `FINALIZED` state for all three consequential paths and persists each raw evaluation RPC response before decoding it.
+
+Expected outcome markers include:
+
+```text
+POLICYFUSE_SUPPORTED_RUNTIME_VERIFY=PASS
+ALLOW_FINALIZED=YES
+DENY_FINALIZED=YES
+REPAIR_REQUIRED_FINALIZED=YES
+ALLOW_AUTHORIZATION_CURRENTNESS_RUNTIME_VERIFIED=YES
+RAW_EVALUATION_RESPONSES_PRESERVED_BEFORE_DECODE=YES
+FINAL_TRANSACTION_COUNT=8
+FINAL_VALIDATOR_COUNT=5
+```
+
+See [`docs/SUPPORTED_RUNTIME_VERIFICATION_V1.md`](docs/SUPPORTED_RUNTIME_VERIFICATION_V1.md).
+
+### Studio Dev live verification
+
+The release-frozen contract was deployed and independently exercised on GenLayer Studio Dev, chain ID `61997`.
+
+The verified paths were:
+
+- `ALLOW` → `R1=PASS`, with authorization current for the exact consumer/action binding at final-certification time.
 - `DENY` → `R1=FAIL`, `RULE_FAILED`, with no authorization.
 - `REPAIR_REQUIRED` → `R1=UNKNOWN`, `RULE_UNKNOWN`, with no authorization.
 
-The final signer nonce is `182`; all seven R7-R1 write authorizations are consumed, and that packet authorizes no further contract writes.
+The deployment and all seven authorized verification writes reached materialized `FINALIZED` state. No explicit finalization transaction was used.
 
-See [`docs/live-verification/STUDIO_DEV_FINAL.md`](docs/live-verification/STUDIO_DEV_FINAL.md) for transaction hashes, rule-vector digests, reproducibility notes, and integrity anchors.
+Complete transaction hashes, rule-vector digests, integrity anchors, and reproducibility notes are published in [`docs/live-verification/STUDIO_DEV_FINAL.md`](docs/live-verification/STUDIO_DEV_FINAL.md).
+
+## Repository layout
+
+```text
+contracts/
+  policy_fuse.py                     Intelligent Contract
+
+tests/
+  direct/                            deterministic/adversarial Direct Mode tests
+  supported_runtime/                 five-validator supported-runtime regression
+
+scripts/
+  verify-supported-runtime.sh        reproducible supported-runtime runner
+
+docs/
+  README.md                           documentation index
+  SPEC_V1.md                         normative v1 behavior
+  PUBLIC_API_V1.md                   public methods and lifecycle rules
+  DATA_MODEL_V1.md                   persistent state model
+  STATE_MACHINE_V1.md                lifecycle transitions and currentness
+  CONSENSUS_V1.md                    leader/validator semantics
+  BOUNDS_AND_IDENTIFIERS_V1.md       input bounds and identifiers
+  THREAT_MODEL_V1.md                 security goals and threats
+  IMPLEMENTATION_MAPPING_V1.md       spec-to-code mapping
+  TOOLCHAIN_V1.md                    pinned development toolchain
+  GENVM_ARTIFACT_PIN_V1.md           frozen GenVM artifact baseline
+  SUPPORTED_RUNTIME_VERIFICATION_V1.md
+  live-verification/                 final Studio Dev evidence and integrity files
+
+requirements-dev.txt
+requirements-lock.txt
+```
+
+## Toolchain and runtime profiles
+
+PolicyFuse intentionally records separate version scopes:
+
+- the **frozen local development / Direct Mode baseline** is documented in [`docs/TOOLCHAIN_V1.md`](docs/TOOLCHAIN_V1.md);
+- the **supported-runtime execution profile** is documented in [`docs/SUPPORTED_RUNTIME_VERIFICATION_V1.md`](docs/SUPPORTED_RUNTIME_VERIFICATION_V1.md);
+- the **Studio Dev live-verification CLI/runtime evidence** is documented in [`docs/live-verification/STUDIO_DEV_FINAL.md`](docs/live-verification/STUDIO_DEV_FINAL.md).
+
+These are different verification layers, not conflicting version claims.
+
+## Security model
+
+PolicyFuse is a semantic authorization primitive, not an execution engine.
+
+A downstream consumer remains responsible for the consequence attached to an authorization and for any application-specific replay protection beyond PolicyFuse currentness checks.
+
+The full threat model is in [`docs/THREAT_MODEL_V1.md`](docs/THREAT_MODEL_V1.md).
+
+## Documentation
+
+Start with [`docs/README.md`](docs/README.md) for the complete documentation map.
+
+## License
+
+No license file is currently published in this repository. Consumers should not assume reuse rights beyond what the repository owner explicitly grants.

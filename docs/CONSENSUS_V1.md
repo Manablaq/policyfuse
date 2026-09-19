@@ -1,12 +1,12 @@
 # PolicyFuse v1 Consensus Semantics
 
-Status: foundation draft.
+Status: v1 frozen consensus semantics; implemented and verified.
 
 ## Principle
 
 Consequential authorization must depend only on fields that validators independently verify.
 
-PolicyFuse will use a custom GenLayer leader/validator path. The leader result is never trusted merely because it is well-formed.
+PolicyFuse uses a custom GenLayer leader/validator path. The leader result is never trusted merely because it is well-formed.
 
 ## Deterministic pre-consensus phase
 

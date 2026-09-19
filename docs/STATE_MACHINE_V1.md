@@ -1,6 +1,6 @@
 # PolicyFuse v1 State Machine
 
-Status: foundation draft to be frozen before implementation.
+Status: v1 frozen state machine; implemented and verified.
 
 ## Design rule
 

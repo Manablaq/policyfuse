@@ -5,7 +5,7 @@ Status: pinned local development and verification baseline.
 ## Contract runtime
 
 - GenVM dependency: `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`
-- This is the exact runtime identifier used by the current official GenLayer contract documentation and by the finalized EvidenceGate reference implementation.
+- This is the exact runtime identifier pinned by the release-frozen PolicyFuse v1 contract.
 
 ## Host tools
 
@@ -42,3 +42,14 @@ The lock file is generated from a fresh Python 3.12 virtual environment after `p
 6. only then implement `contracts/policy_fuse.py`.
 
 The pre-deployment toolchain gate has been satisfied for the frozen v1 source. The verified live deployment target is GenLayer Studio Dev (chain ID 61997); see `docs/live-verification/STUDIO_DEV_FINAL.md` for the live verification record.
+
+## Verification profile scope
+
+The versions in this document describe the frozen local development, static validation, and Direct Mode baseline for PolicyFuse v1.
+
+Other verification layers intentionally use separately pinned profiles:
+
+- supported-runtime execution: GenLayer simulator `v0.121.24`, GenVM `v0.2.16`, linux/arm64 — see `SUPPORTED_RUNTIME_VERIFICATION_V1.md`;
+- final Studio Dev verification: GenLayer CLI `0.40.0-rc.3` in an isolated temporary verification environment — see `live-verification/STUDIO_DEV_FINAL.md`.
+
+Those profiles are evidence for different execution layers and do not replace this document's local development baseline.

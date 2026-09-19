@@ -1,6 +1,6 @@
 # PolicyFuse v1 Public API
 
-Status: foundation draft to be frozen before implementation.
+Status: v1 frozen public API; implemented by the release-frozen contract.
 
 The v1 API is contract-only and non-custodial. There is no payable method, no asset transfer method, and no automatic downstream execution method.
 

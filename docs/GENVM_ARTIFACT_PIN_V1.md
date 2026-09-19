@@ -8,7 +8,7 @@ PolicyFuse v1 uses the exact GenLayer runtime declared by the contract header:
 
 `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`
 
-The current official GenLayer documentation still uses this exact runtime hash for Intelligent Contract examples and storage documentation.
+The v1 contract header is pinned to this exact runtime identifier. Repository verification treats it as immutable for the release-frozen v1 source.
 
 ## GenVM artifact source
 
@@ -65,3 +65,9 @@ No runtime hash, GenVM bundle, `genlayer-test`, `genlayer-py`, or linter version
 A future upgrade requires a separate compatibility gate that re-runs semantic validation, type checking, ABI extraction, Direct Mode execution, validator agreement/disagreement tests, and supported multi-validator runtime tests before the replacement becomes canonical.
 
 The pre-deployment runtime gate has been satisfied for the frozen v1 source. The verified live deployment target is GenLayer Studio Dev (chain ID 61997); see `docs/live-verification/STUDIO_DEV_FINAL.md` for deployed-source and finality evidence.
+
+## Version-scope note
+
+The `v0.3.0-rc7` GenVM artifact recorded here is the frozen static semantic-validation / linter artifact baseline for the v1 source.
+
+It is distinct from the supported-runtime execution profile (`GenVM v0.2.16`) and from the isolated CLI used for Studio Dev live verification (`GenLayer CLI 0.40.0-rc.3`). Those execution layers are documented separately in `SUPPORTED_RUNTIME_VERIFICATION_V1.md` and `live-verification/STUDIO_DEV_FINAL.md`.

@@ -1,6 +1,6 @@
 # PolicyFuse v1 Threat Model
 
-Status: foundation draft.
+Status: v1 frozen threat model for the release-frozen implementation.
 
 ## Security goals
 

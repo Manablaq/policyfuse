@@ -1,8 +1,8 @@
 # PolicyFuse v1 Data Model
 
-Status: foundation draft to be frozen before implementation.
+Status: v1 frozen data model; implemented by the release-frozen contract.
 
-The implementation will use storage-compatible dataclasses and bounded `TreeMap` state.
+The implementation uses storage-compatible dataclasses and bounded `TreeMap` state.
 
 ## Persistent collections
 

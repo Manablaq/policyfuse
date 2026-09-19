@@ -1,6 +1,6 @@
 # PolicyFuse v1 Specification
 
-Status: foundation draft to be frozen before contract implementation.
+Status: v1 frozen specification; implemented and verified.
 
 ## Purpose
 

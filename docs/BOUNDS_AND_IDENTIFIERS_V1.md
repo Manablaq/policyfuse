@@ -1,6 +1,6 @@
 # PolicyFuse v1 Bounds and Identifiers
 
-Status: foundation draft to be frozen before implementation.
+Status: v1 frozen normative bounds; implemented by the release-frozen contract.
 
 Every untrusted string or collection is bounded before it can affect nondeterministic execution.
 

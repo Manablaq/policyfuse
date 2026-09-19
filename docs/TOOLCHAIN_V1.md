@@ -41,4 +41,4 @@ The lock file is generated from a fresh Python 3.12 virtual environment after `p
 5. validate a disposable GenVM probe against the pinned runtime;
 6. only then implement `contracts/policy_fuse.py`.
 
-Bradbury deployment remains forbidden until all local, Direct Mode, supported-runtime, and adversarial gates pass.
+The pre-deployment toolchain gate has been satisfied for the frozen v1 source. The verified live deployment target is GenLayer Studio Dev (chain ID 61997); see `docs/live-verification/STUDIO_DEV_FINAL.md` for the live verification record.

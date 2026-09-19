@@ -64,4 +64,4 @@ No runtime hash, GenVM bundle, `genlayer-test`, `genlayer-py`, or linter version
 
 A future upgrade requires a separate compatibility gate that re-runs semantic validation, type checking, ABI extraction, Direct Mode execution, validator agreement/disagreement tests, and supported multi-validator runtime tests before the replacement becomes canonical.
 
-Bradbury deployment remains forbidden until implementation, Direct Mode, supported-runtime, adversarial, exact-source, and finality gates pass.
+The pre-deployment runtime gate has been satisfied for the frozen v1 source. The verified live deployment target is GenLayer Studio Dev (chain ID 61997); see `docs/live-verification/STUDIO_DEV_FINAL.md` for deployed-source and finality evidence.
